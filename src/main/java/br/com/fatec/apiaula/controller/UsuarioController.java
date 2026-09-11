@@ -1,52 +1,58 @@
 package br.com.fatec.apiaula.controller;
 
+import br.com.fatec.apiaula.model.Usuario;
+import br.com.fatec.apiaula.service.UsuarioService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import br.com.fatec.apiaula.model.Usuario;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
 @RequestMapping("/usuarios")
 public class UsuarioController {
 
-    private List<Usuario> listaUsuarios = new ArrayList<>();
+    private final UsuarioService usuarioService;
 
+    public UsuarioController(UsuarioService usuarioService) {
+        this.usuarioService = usuarioService;
+    }
+
+    // GET - Listar todos os usuários
     @GetMapping
-    public List<Usuario> listarUsuarios() {
-        return listaUsuarios;
+    public ResponseEntity<List<Usuario>> listar() {
+        return ResponseEntity.ok(usuarioService.listar());
     }
 
-    @GetMapping("/{indice}")
-    public ResponseEntity<Usuario> buscar(@PathVariable int indice) {
-        if (indice < 0 || indice >= listaUsuarios.size()) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(listaUsuarios.get(indice));
+    // GET - Buscar usuário por ID
+    @GetMapping("/{id}")
+    public ResponseEntity<Usuario> buscarPorId(@PathVariable Integer id) {
+        return usuarioService.buscarPorId(id)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    // POST - Criar novo usuário
     @PostMapping
-    public ResponseEntity<Usuario> criar(@RequestBody Usuario usuario) {
-        listaUsuarios.add(usuario);
-        return ResponseEntity.status(201).body(usuario);
+    public ResponseEntity<Usuario> salvar(@RequestBody Usuario usuario) {
+        Usuario novoUsuario = usuarioService.salvar(usuario);
+        return ResponseEntity.status(201).body(novoUsuario);
     }
 
-    @DeleteMapping("/{indice}")
-    public ResponseEntity<Void> deletar(@PathVariable int indice) {
-        if (indice < 0 || indice >= listaUsuarios.size()) {
-            return ResponseEntity.notFound().build();
-        }
-        listaUsuarios.remove(indice);
-        return ResponseEntity.noContent().build();
+    // PUT - Atualizar usuário
+    @PutMapping("/{id}")
+    public ResponseEntity<Usuario> atualizar(@PathVariable Integer id, @RequestBody Usuario usuario) {
+        return usuarioService.atualizar(id, usuario)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @PutMapping("/{indice}")
-    public ResponseEntity<Usuario> atualizar(@PathVariable int indice, @RequestBody Usuario usuarioAtualizado) {
-        if (indice < 0 || indice >= listaUsuarios.size()) {
-            return ResponseEntity.notFound().build();
+    // DELETE - Remover usuário por ID
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deletar(@PathVariable Integer id) {
+        if (usuarioService.buscarPorId(id).isPresent()) {
+            usuarioService.deletar(id);
+            return ResponseEntity.noContent().build();
         }
-        listaUsuarios.set(indice, usuarioAtualizado);
-        return ResponseEntity.ok(usuarioAtualizado);
+        return ResponseEntity.notFound().build();
     }
 }
