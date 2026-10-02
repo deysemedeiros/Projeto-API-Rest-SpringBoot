@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Gerenciamento de Usuários</title>
+
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+
+<header class="cabecalho">
+    <div class="container">
+        <h1>Gerenciamento de Usuários</h1>
+        <p>Spring Boot, API REST e PostgreSQL no Neon</p>
+    </div>
+</header>
+
+<main class="container">
+
+    <section class="painel">
+        <h2 id="titulo-formulario">Cadastrar usuário</h2>
+
+        <form id="form-usuario">
+
+            <input type="hidden" id="usuario-id">
+
+            <div class="campo">
+                <label for="nome">Nome</label>
+                <input
+                        type="text"
+                        id="nome"
+                        placeholder="Digite o nome"
+                        required
+                        minlength="3">
+            </div>
+
+            <div class="campo">
+                <label for="idade">Idade</label>
+                <input
+                        type="number"
+                        id="idade"
+                        placeholder="Digite a idade"
+                        required
+                        min="0"
+                        max="120">
+            </div>
+
+            <div class="acoes-formulario">
+                <button type="submit" id="botao-salvar">
+                    Cadastrar
+                </button>
+
+                <button
+                        type="button"
+                        id="botao-cancelar"
+                        class="botao-secundario oculto">
+                    Cancelar edição
+                </button>
+            </div>
+        </form>
+
+        <div id="mensagem" class="mensagem oculto"></div>
+    </section>
+
+    <section class="painel">
+        <div class="cabecalho-listagem">
+            <div>
+                <h2>Usuários cadastrados</h2>
+                <p id="quantidade-usuarios">Carregando usuários...</p>
+            </div>
+
+            <button
+                    type="button"
+                    id="botao-atualizar"
+                    class="botao-secundario">
+                Atualizar lista
+            </button>
+        </div>
+
+        <div class="tabela-responsiva">
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nome</th>
+                    <th>Idade</th>
+                    <th>Ações</th>
+                </tr>
+                </thead>
+
+                <tbody id="tabela-usuarios">
+                <!-- Os usuários serão inseridos pelo JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <p id="lista-vazia" class="lista-vazia oculto">
+            Nenhum usuário cadastrado.
+        </p>
+    </section>
+
+    <section class="painel proximas-funcionalidades">
+        <h2>Próximas funcionalidades</h2>
+
+        <div class="recursos">
+            <div class="recurso">
+                <h3>Busca por idade</h3>
+                <p>Localizar usuários de acordo com a idade informada.</p>
+            </div>
+
+            <div class="recurso" id="cardImportacao">
+                <h3>Importação de arquivo</h3>
+                <p>Cadastrar vários usuários a partir de um arquivo.</p>
+            </div>
+
+            <div class="recurso">
+                <h3>Gráfico etário</h3>
+                <p>Apresentar os usuários agrupados por faixas etárias.</p>
+            </div>
+        </div>
+        <input
+                type="file"
+                id="arquivoUsuarios"
+                accept=".txt,.csv"
+                hidden
+        >
+        <p id="mensagemImportacao"></p>
+    </section>
+
+</main>
+
+<footer>
+    <p>API Exemplo de Usuários</p>
+</footer>
+
+<script src="/js/usuario.js"></script>
+
+</body>
+</html>

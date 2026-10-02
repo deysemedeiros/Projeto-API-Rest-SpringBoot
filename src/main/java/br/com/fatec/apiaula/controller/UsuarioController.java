@@ -4,11 +4,12 @@ import br.com.fatec.apiaula.model.Usuario;
 import br.com.fatec.apiaula.service.UsuarioService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/usuarios")
+@RequestMapping("/api/usuarios")
 public class UsuarioController {
 
     private final UsuarioService usuarioService;
@@ -54,5 +55,16 @@ public class UsuarioController {
             return ResponseEntity.noContent().build();
         }
         return ResponseEntity.notFound().build();
+    }
+
+    // POST - Importar arquivo
+    @PostMapping("/importar")
+    public ResponseEntity<String> importarArquivo(@RequestParam("arquivo") MultipartFile arquivo) {
+        try {
+            int quantidade = usuarioService.importarArquivo(arquivo);
+            return ResponseEntity.ok(quantidade + " usuários importados com sucesso.");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Erro ao importar arquivo: " + e.getMessage());
+        }
     }
 }
