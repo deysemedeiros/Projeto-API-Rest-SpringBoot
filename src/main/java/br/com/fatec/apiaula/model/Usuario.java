@@ -1,5 +1,6 @@
 package br.com.fatec.apiaula.model;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -10,28 +11,29 @@ public class Usuario {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Integer id;
 
+    @Column(nullable = false, length = 100)
     private String nome;
-    private int idade;
+
+    @Column(nullable = false)
+    private Integer idade;
 
     public Usuario() {}
 
-    public Usuario(String nome, int idade) {
+    public Usuario(String nome, Integer idade) {
         this.nome = nome;
         this.idade = idade;
     }
 
-    // Getter e Setter para id
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
-    // Getter e Setter para nome
     public String getNome() {
         return nome;
     }
@@ -40,12 +42,11 @@ public class Usuario {
         this.nome = nome;
     }
 
-    // Getter e Setter para idade
-    public int getIdade() {
+    public Integer getIdade() {
         return idade;
     }
 
-    public void setIdade(int idade) {
+    public void setIdade(Integer idade) {
         this.idade = idade;
     }
 }
