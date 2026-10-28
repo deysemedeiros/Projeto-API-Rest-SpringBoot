@@ -3,137 +3,191 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Gerenciamento de usuários consumindo uma API REST feita com Spring Boot e PostgreSQL.">
 
     <title>Gerenciamento de Usuários</title>
 
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%234f46e5'/><circle cx='16' cy='12' r='5' fill='white'/><path d='M7 26c1.5-5 5-7 9-7s7.5 2 9 7' fill='white'/></svg>">
     <link rel="stylesheet" href="/css/style.css">
 </head>
 
 <body>
 
-<header class="cabecalho">
-    <div class="container">
-        <h1>Gerenciamento de Usuários</h1>
-        <p>Spring Boot, API REST e PostgreSQL no Neon</p>
+<header class="topo">
+    <div class="container topo-conteudo">
+        <div class="marca">
+            <span class="marca-icone" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </span>
+            <div>
+                <h1>Gerenciamento de Usuários</h1>
+                <p>Spring Boot · API REST · PostgreSQL (Neon)</p>
+            </div>
+        </div>
+
+        <div class="topo-acoes">
+            <span id="status-api" class="status-api" data-estado="carregando">
+                <span class="status-ponto" aria-hidden="true"></span>
+                <span id="status-texto">Conectando...</span>
+            </span>
+            <a class="link-swagger" href="/swagger-ui.html" target="_blank" rel="noopener">Documentação da API</a>
+        </div>
     </div>
 </header>
 
-<main class="container">
+<main class="container layout">
 
-    <section class="painel">
-        <h2 id="titulo-formulario">Cadastrar usuário</h2>
+    <!-- Coluna da esquerda: formulário e importação -->
+    <div class="coluna-lateral">
 
-        <form id="form-usuario">
-
-            <input type="hidden" id="usuario-id">
-
-            <div class="campo">
-                <label for="nome">Nome</label>
-                <input
-                        type="text"
-                        id="nome"
-                        placeholder="Digite o nome"
-                        required
-                        minlength="3">
+        <section class="painel" aria-labelledby="titulo-formulario">
+            <div class="painel-cabecalho">
+                <h2 id="titulo-formulario">Cadastrar usuário</h2>
+                <span id="etiqueta-edicao" class="etiqueta oculto">Editando</span>
             </div>
 
-            <div class="campo">
-                <label for="idade">Idade</label>
-                <input
-                        type="number"
-                        id="idade"
-                        placeholder="Digite a idade"
-                        required
-                        min="0"
-                        max="120">
+            <form id="form-usuario" novalidate>
+                <input type="hidden" id="usuario-id">
+
+                <div class="campo">
+                    <label for="nome">Nome</label>
+                    <input type="text" id="nome" placeholder="Ex.: Ana Lima" autocomplete="off"
+                           required minlength="3" maxlength="100" aria-describedby="erro-nome">
+                    <p id="erro-nome" class="erro-campo" aria-live="polite"></p>
+                </div>
+
+                <div class="campo">
+                    <label for="idade">Idade</label>
+                    <input type="number" id="idade" placeholder="Ex.: 20" inputmode="numeric"
+                           required min="0" max="120" step="1" aria-describedby="erro-idade">
+                    <p id="erro-idade" class="erro-campo" aria-live="polite"></p>
+                </div>
+
+                <div class="acoes-formulario">
+                    <button type="submit" id="botao-salvar" class="botao botao-primario">Cadastrar</button>
+                    <button type="button" id="botao-cancelar" class="botao botao-fantasma oculto">Cancelar</button>
+                </div>
+            </form>
+        </section>
+
+        <section class="painel" aria-labelledby="titulo-importacao">
+            <h2 id="titulo-importacao">Importar arquivo</h2>
+            <p class="texto-apoio">Cadastre vários usuários de uma vez com um arquivo <strong>.txt</strong> ou <strong>.csv</strong>, uma pessoa por linha no formato <code>nome;idade</code>.</p>
+
+            <div id="area-importacao" class="area-importacao" role="button" tabindex="0"
+                 aria-describedby="dica-importacao">
+                <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                <span class="area-titulo">Clique ou arraste o arquivo aqui</span>
+                <span id="dica-importacao" class="area-dica">Se alguma linha estiver errada, nada é cadastrado.</span>
+            </div>
+            <input type="file" id="arquivo-usuarios" accept=".txt,.csv" hidden>
+
+            <div id="resultado-importacao" class="resultado-importacao oculto" aria-live="polite"></div>
+
+            <button type="button" id="baixar-exemplo" class="botao-link">Baixar arquivo de exemplo</button>
+        </section>
+    </div>
+
+    <!-- Coluna da direita: resumo e listagem -->
+    <div class="coluna-principal">
+
+        <section class="resumo" aria-label="Resumo dos usuários">
+            <div class="cartao-resumo">
+                <span class="resumo-rotulo">Total</span>
+                <strong id="resumo-total" class="resumo-valor">–</strong>
+            </div>
+            <div class="cartao-resumo">
+                <span class="resumo-rotulo">Idade média</span>
+                <strong id="resumo-media" class="resumo-valor">–</strong>
+            </div>
+            <div class="cartao-resumo">
+                <span class="resumo-rotulo">Mais novo</span>
+                <strong id="resumo-min" class="resumo-valor">–</strong>
+            </div>
+            <div class="cartao-resumo">
+                <span class="resumo-rotulo">Mais velho</span>
+                <strong id="resumo-max" class="resumo-valor">–</strong>
+            </div>
+        </section>
+
+        <section class="painel" aria-labelledby="titulo-lista">
+            <div class="cabecalho-listagem">
+                <div>
+                    <h2 id="titulo-lista">Usuários cadastrados</h2>
+                    <p id="quantidade-usuarios" class="texto-apoio" aria-live="polite">Carregando usuários...</p>
+                </div>
+
+                <div class="ferramentas">
+                    <label class="busca">
+                        <span class="sr-only">Buscar por nome</span>
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        <input type="search" id="busca" placeholder="Buscar por nome">
+                    </label>
+                    <button type="button" id="botao-atualizar" class="botao botao-fantasma" title="Recarregar a lista">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                        Atualizar
+                    </button>
+                </div>
             </div>
 
-            <div class="acoes-formulario">
-                <button type="submit" id="botao-salvar">
-                    Cadastrar
-                </button>
+            <div class="tabela-responsiva">
+                <table>
+                    <thead>
+                    <tr>
+                        <th scope="col" aria-sort="ascending" data-campo="id"><button type="button" class="ordenar">ID</button></th>
+                        <th scope="col" aria-sort="none" data-campo="nome"><button type="button" class="ordenar">Nome</button></th>
+                        <th scope="col" aria-sort="none" data-campo="idade"><button type="button" class="ordenar">Idade</button></th>
+                        <th scope="col" class="coluna-acoes">Ações</th>
+                    </tr>
+                    </thead>
 
-                <button
-                        type="button"
-                        id="botao-cancelar"
-                        class="botao-secundario oculto">
-                    Cancelar edição
-                </button>
-            </div>
-        </form>
-
-        <div id="mensagem" class="mensagem oculto" aria-live="polite"></div>
-    </section>
-
-    <section class="painel">
-        <div class="cabecalho-listagem">
-            <div>
-                <h2>Usuários cadastrados</h2>
-                <p id="quantidade-usuarios">Carregando usuários...</p>
+                    <tbody id="tabela-usuarios">
+                    <!-- As linhas são criadas pelo JavaScript -->
+                    </tbody>
+                </table>
             </div>
 
-            <button
-                    type="button"
-                    id="botao-atualizar"
-                    class="botao-secundario">
-                Atualizar lista
-            </button>
-        </div>
-
-        <div class="tabela-responsiva">
-            <table>
-                <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nome</th>
-                    <th>Idade</th>
-                    <th>Ações</th>
-                </tr>
-                </thead>
-
-                <tbody id="tabela-usuarios">
-                <!-- Os usuários serão inseridos pelo JavaScript -->
-                </tbody>
-            </table>
-        </div>
-
-        <p id="lista-vazia" class="lista-vazia oculto">
-            Nenhum usuário cadastrado.
-        </p>
-    </section>
-
-    <section class="painel proximas-funcionalidades">
-        <h2>Próximas funcionalidades</h2>
-
-        <div class="recursos">
-            <div class="recurso">
-                <h3>Busca por idade</h3>
-                <p>Localizar usuários de acordo com a idade informada.</p>
+            <div id="lista-vazia" class="lista-vazia oculto">
+                <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+                <p id="lista-vazia-texto">Nenhum usuário cadastrado ainda.</p>
             </div>
+        </section>
 
-            <div class="recurso recurso-clicavel" id="cardImportacao" role="button" tabindex="0" title="Clique para escolher um arquivo .txt ou .csv no formato nome;idade">
-                <h3>Importação de arquivo</h3>
-                <p>Cadastrar vários usuários a partir de um arquivo .txt ou .csv (nome;idade).</p>
+        <section class="painel" aria-labelledby="titulo-em-breve">
+            <h2 id="titulo-em-breve">Próximas funcionalidades</h2>
+            <div class="recursos">
+                <div class="recurso">
+                    <span class="etiqueta etiqueta-suave">Em breve</span>
+                    <h3>Busca por idade</h3>
+                    <p>Localizar usuários de acordo com a idade informada.</p>
+                </div>
+                <div class="recurso">
+                    <span class="etiqueta etiqueta-suave">Em breve</span>
+                    <h3>Gráfico etário</h3>
+                    <p>Apresentar os usuários agrupados por faixas etárias.</p>
+                </div>
             </div>
-
-            <div class="recurso">
-                <h3>Gráfico etário</h3>
-                <p>Apresentar os usuários agrupados por faixas etárias.</p>
-            </div>
-        </div>
-        <input
-                type="file"
-                id="arquivoUsuarios"
-                accept=".txt,.csv"
-                hidden
-        >
-        <p id="mensagemImportacao" aria-live="polite"></p>
-    </section>
-
+        </section>
+    </div>
 </main>
 
-<footer>
-    <p>API Exemplo de Usuários</p>
+<!-- Confirmação de exclusão -->
+<dialog id="dialogo-excluir" class="dialogo" aria-labelledby="dialogo-titulo">
+    <form method="dialog">
+        <h2 id="dialogo-titulo">Excluir usuário?</h2>
+        <p id="dialogo-texto"></p>
+        <div class="dialogo-acoes">
+            <button value="cancelar" class="botao botao-fantasma">Cancelar</button>
+            <button value="confirmar" class="botao botao-perigo">Excluir</button>
+        </div>
+    </form>
+</dialog>
+
+<!-- Avisos rápidos (toasts) -->
+<div id="avisos" class="avisos" aria-live="polite"></div>
+
+<footer class="rodape">
+    <p>Projeto da disciplina Desenvolvimento Web III · Fatec Zona Leste</p>
 </footer>
 
 <script src="/js/usuario.js"></script>
