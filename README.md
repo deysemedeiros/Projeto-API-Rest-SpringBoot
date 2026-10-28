@@ -2,6 +2,21 @@
 
 Projeto da disciplina **Desenvolvimento Web III** (Fatec Zona Leste): uma API REST com CRUD de usuários, importação em lote por arquivo e uma página web que consome a API com `fetch`.
 
+![Tela principal com resumo, busca e lista de usuários](docs/img/tela-lista.png)
+
+<table>
+  <tr>
+    <td><img src="docs/img/tela-edicao.png" alt="Edição de usuário"></td>
+    <td><img src="docs/img/tela-importacao.png" alt="Importação de arquivo concluída"></td>
+    <td><img src="docs/img/tela-modo-escuro.png" alt="Modo escuro"></td>
+  </tr>
+  <tr>
+    <td align="center">Edição</td>
+    <td align="center">Importação por arquivo</td>
+    <td align="center">Modo escuro</td>
+  </tr>
+</table>
+
 ## Tecnologias
 
 - Java 17 e Spring Boot 3.2
@@ -9,7 +24,7 @@ Projeto da disciplina **Desenvolvimento Web III** (Fatec Zona Leste): uma API RE
 - PostgreSQL hospedado no [Neon](https://neon.tech)
 - Swagger UI (springdoc-openapi)
 - JUnit 5, Mockito, MockMvc e H2 nos testes
-- HTML, CSS e JavaScript no front
+- HTML, CSS e JavaScript no front (busca, ordenação, resumo, importação por arrastar e soltar e modo escuro)
 
 ## Estrutura
 
