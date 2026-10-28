@@ -15,6 +15,10 @@ const listaVazia = document.getElementById("lista-vazia");
 const quantidadeUsuarios = document.getElementById("quantidade-usuarios");
 const mensagem = document.getElementById("mensagem");
 
+const cardImportacao = document.getElementById("cardImportacao");
+const arquivoUsuarios = document.getElementById("arquivoUsuarios");
+const mensagemImportacao = document.getElementById("mensagemImportacao");
+
 let usuarios = [];
 let idEmEdicao = null;
 
@@ -23,6 +27,63 @@ document.addEventListener("DOMContentLoaded", listarUsuarios);
 formulario.addEventListener("submit", salvarUsuario);
 botaoCancelar.addEventListener("click", cancelarEdicao);
 botaoAtualizar.addEventListener("click", listarUsuarios);
+
+// Importação: o card abre o seletor de arquivo (listeners registrados uma única vez)
+cardImportacao.addEventListener("click", () => arquivoUsuarios.click());
+cardImportacao.addEventListener("keydown", (evento) => {
+    if (evento.key === "Enter" || evento.key === " ") {
+        evento.preventDefault();
+        arquivoUsuarios.click();
+    }
+});
+arquivoUsuarios.addEventListener("change", importarArquivo);
+
+async function importarArquivo() {
+    const arquivo = arquivoUsuarios.files[0];
+
+    if (!arquivo) {
+        return;
+    }
+
+    const dados = new FormData();
+    dados.append("arquivo", arquivo);
+
+    mensagemImportacao.textContent = "Importando usuários...";
+
+    try {
+        const resposta = await fetch(`${API_URL}/importar`, {
+            method: "POST",
+            body: dados
+        });
+
+        const texto = await resposta.text();
+
+        if (!resposta.ok) {
+            throw new Error(texto);
+        }
+
+        mensagemImportacao.textContent = texto;
+
+        await listarUsuarios();
+    } catch (erro) {
+        mensagemImportacao.textContent = erro.message;
+    } finally {
+        arquivoUsuarios.value = "";
+    }
+}
+
+// Lê a mensagem de erro que a API devolve em JSON (GlobalExceptionHandler)
+async function lerErro(resposta, mensagemPadrao) {
+    try {
+        const corpo = await resposta.json();
+        if (corpo.erros) {
+            return Object.values(corpo.erros).join(" ");
+        }
+        return corpo.mensagem || mensagemPadrao;
+    } catch {
+        return mensagemPadrao;
+    }
+}
 
 async function listarUsuarios() {
     try {
@@ -75,61 +136,6 @@ function renderizarTabela() {
             "click",
             () => excluirUsuario(usuario.id, usuario.nome)
         );
-        const cardImportacao = document.getElementById("cardImportacao");
-        const arquivoUsuarios = document.getElementById("arquivoUsuarios");
-        cardImportacao.style.cursor = "pointer";
-        cardImportacao.addEventListener("click", () => { arquivoUsuarios.click();});
-        cardImportacao.querySelectorAll("*").forEach(elemento => {
-            elemento.style.cursor = "pointer";
-        });
-
-        cardImportacao.addEventListener("click", () => {
-            arquivoUsuarios.click();
-        });
-        const mensagemImportacao =
-            document.getElementById("mensagemImportacao");
-
-        arquivoUsuarios.addEventListener("change", async () => {
-
-            const arquivo = arquivoUsuarios.files[0];
-
-            if (!arquivo) {
-                return;
-            }
-
-            const dados = new FormData();
-            dados.append("arquivo", arquivo);
-
-            mensagemImportacao.textContent =
-                "Importando usuários...";
-
-            try {
-                const resposta = await fetch(
-                    `${API_URL}/importar`,
-                    {
-                        method: "POST",
-                        body: dados
-                    }
-                );
-
-                const mensagem = await resposta.text();
-
-                if (!resposta.ok) {
-                    throw new Error(mensagem);
-                }
-
-                mensagemImportacao.textContent = mensagem;
-
-                await listarUsuarios();
-
-            } catch (erro) {
-                mensagemImportacao.textContent =
-                    erro.message;
-
-            } finally {
-                arquivoUsuarios.value = "";
-            }
-        });
         celulaAcoes.appendChild(botaoEditar);
         celulaAcoes.appendChild(botaoExcluir);
         linha.appendChild(celulaAcoes);
@@ -204,7 +210,7 @@ async function cadastrarUsuario(usuario) {
     });
 
     if (!resposta.ok) {
-        throw new Error("Não foi possível cadastrar o usuário.");
+        throw new Error(await lerErro(resposta, "Não foi possível cadastrar o usuário."));
     }
 
     exibirMensagem("Usuário cadastrado com sucesso.", "sucesso");
@@ -224,7 +230,7 @@ async function atualizarUsuario(id, usuario) {
     }
 
     if (!resposta.ok) {
-        throw new Error("Não foi possível atualizar o usuário.");
+        throw new Error(await lerErro(resposta, "Não foi possível atualizar o usuário."));
     }
 
     exibirMensagem("Usuário atualizado com sucesso.", "sucesso");

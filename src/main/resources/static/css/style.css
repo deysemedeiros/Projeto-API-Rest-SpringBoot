@@ -228,3 +228,13 @@ footer {
         cursor: pointer !important;
     }
 }
+/* Card de importação clicável */
+.recurso-clicavel,
+.recurso-clicavel * {
+    cursor: pointer;
+}
+
+.recurso-clicavel:focus-visible {
+    outline: 3px solid #2563eb;
+    outline-offset: 2px;
+}
